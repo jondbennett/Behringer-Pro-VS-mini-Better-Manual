@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Port
+TIMEOUT=10
+
+# Check args
+if [ $# -ne "2" ]; then
+    echo "usage: $0 r|s filename"
+    exit 1
+fi
+
+# Find the Pro VS Mini Port
+PORTLINE="$(amidi -l | grep 'PROVS-MINI MIDI 1')"
+
+if [ -z "$PORTLINE" ]; then
+    echo "Pro VS Mini not found in:"
+    amidi -l
+    exit 1
+fi
+
+PORT="$(echo "$PORTLINE" | awk '{print $2}')"
+echo Pro VS Mini port is \"$PORT\"
+
+
+# Send data
+if [ $1 == "s" ]; then
+    echo "Sending from file: '$2'; will timeout in $TIMEOUT seconds"
+    amidi --port="$PORT" --send="$2" --timeout="$TIMEOUT"
+fi
+
+
+# Receive data
+if [ $1 == "r" ]; then
+    echo "Receiving to file: '$2'; will timeout in $TIMEOUT seconds"
+    amidi --port="$PORT" --receive="$2" --timeout="$TIMEOUT"
+
+    # Final info
+    echo "File contents:"
+    hd -C "$2"
+fi
+
